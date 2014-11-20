@@ -77,6 +77,13 @@
  * behind the goat
  * shoe or shop
  *
+ * Solution:
+ *	1. Use kmp for string matching
+ *  2. Use string list for string manupilation
+ *
+ * Traps:
+ *	1. the replace-by string may be empty
+ *  2. the final result may be empty
  */
 #include <stdio.h>
 #include <stdlib.h>
