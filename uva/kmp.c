@@ -31,19 +31,24 @@ int kmp_find(const char* text, const char* pattern) {
 
 	unsigned* f = kmp_init_failure((const char*)pattern, len);
 
-	int i, p = 0;
+	assert(f != NULL);
+
+	int i = 0, p = 0;
 
 	while(text[i] != 0)
 	{
+		while(p != 0 && text[i] != pattern[p]) {
+			p = f[p];
+		}
+
 		if (text[i] == pattern[p]) {
 			p++;
 
 			if (p == len) {
-				return i - p;
+				return i - p + 1;
 			}
-		} else {
-			p = f[p];
 		}
+
 		i++;
 	}
 
@@ -52,6 +57,6 @@ int kmp_find(const char* text, const char* pattern) {
 
 int main(int argc, char const *argv[])
 {
-	printf("1: %d\n", kmp_find("baban", "ban"));
+	printf("1: %d\n", kmp_find("banbann", "ban"));
 	return 0;
 }
