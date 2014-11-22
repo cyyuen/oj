@@ -61,9 +61,22 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define MAX_L 1000
 #define HINT_L 10
+
+typedef struct bitset* bitset_t;
+
+bitset_t new_bitset(unsigned len);
+
+void bitset_set(bitset_t bs, unsigned idx);
+
+void bitset_unset(bitset_t bs, unsigned idx);
+
+bool bitset_isset(bitset_t bs, unsigned idx);
+
+void bitset_reset(bitset_t bs);
 
 int main(int argc, char const *argv[])
 {
@@ -73,7 +86,7 @@ int main(int argc, char const *argv[])
 	unsigned guesshint[HINT_L];
 	uint8_t secret[MAX_L];
 	uint8_t guess[MAX_L];
-	bool used[MAX_L];
+	bitset_t used = new_bitset(MAX_L);
 	int i;
 	int cont;
 	int strong;
@@ -99,7 +112,7 @@ int main(int argc, char const *argv[])
 			weak = 0;
 
 			memcpy(guesshint, hinttbl, sizeof(unsigned) * HINT_L);
-			memset(used, false, sizeof(bool) * MAX_L);
+			bitset_reset(used);
 
 			for (i = 0; i < len; ++i)
 			{
@@ -108,7 +121,7 @@ int main(int argc, char const *argv[])
 				if (buf == secret[i]) {
 					strong++;
 					guesshint[buf]--;
-					used[i] = true;
+					bitset_set(used, i);
 				}
 				cont += buf;
 			}
@@ -118,7 +131,7 @@ int main(int argc, char const *argv[])
 			for (i = 0; i < len; ++i)
 			{
 				uint8_t j = guess[i];
-				if (guesshint[j] != 0 && !used[i]) {
+				if (guesshint[j] != 0 && !bitset_isset(used, i)) {
 					weak++;
 					guesshint[j]--;
 				}
@@ -130,4 +143,53 @@ int main(int argc, char const *argv[])
 	}
 
 	return 0;
+}
+
+#define MASK_L 8
+
+const uint8_t setmask[8] = {
+	1, 2, 4, 8, 16, 32, 64, 128
+};
+
+struct bitset {
+	unsigned len;
+	unsigned top;
+	uint8_t set[];
+};
+
+bitset_t new_bitset(unsigned len) {
+	int alloc = len / MASK_L + 1;
+
+	bitset_t bs = calloc(1, sizeof(*bs) + sizeof(uint8_t) * alloc);
+	bs->len = len;
+	bs->top = alloc;
+
+	return bs;
+}
+
+void bitset_reset(bitset_t bs) {
+	memset(bs->set, 0, sizeof(uint8_t) * bs->top);
+}
+
+static int idx2bidx(unsigned idx) {
+	return idx / MASK_L;
+}
+
+static uint8_t mask4idx(unsigned idx) {
+	return setmask[idx%MASK_L];
+}
+
+void bitset_set(bitset_t bs, unsigned idx) {
+
+	bs->set[idx2bidx(idx)] |= mask4idx(idx);
+}
+
+void bitset_unset(bitset_t bs, unsigned idx) {
+
+	bs->set[idx2bidx(idx)] &= (~ mask4idx(idx));
+}
+
+bool bitset_isset(bitset_t bs, unsigned idx) {
+
+	return (bs->set[idx2bidx(idx)] & mask4idx(idx)) != 0;
 }
