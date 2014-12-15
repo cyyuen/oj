@@ -102,56 +102,44 @@ bool islistmatch(list* l, uint8_t card) {
 	return false;
 }
 
-int reducenode(node* nd, list* l) {
-	node* n = nd;
+void deleteNodeIfEmpty(node* nd, list* l) {
+	if (nd->top == 0) {
+			l->len--;
+	if (nd->next) {
+		nd->next->prev = nd->prev;
+	}
+	if (nd->prev) {
+		nd->prev->next = nd->next;
+	}
 
-	uint8_t i = TOP(nd);
-	while (1) {
-		if (n->next && n->next->next && n->next->next->next && ismatch(TOP(n->next->next->next), i)) {
-			n = n->next->next->next;
-		} else if (n->next && ismatch(TOP(n->next), i)) {
-			n = n->next;
+	if (l->header == nd)
+		l->header = nd->next;
+	}
+}
+
+int reducenode(node* nd, list* l) {
+	while (SIZE(nd) > 0) {
+		if (nd->next && nd->next->next && nd->next->next->next && ismatch(TOP(nd->next->next->next), TOP(nd))) {
+			PUSH(nd->next->next->next, TOP(nd));
+			POP(nd);
+			reducenode(nd->next->next->next, l);
+			reducenode(nd->next->next, l);
+			reducenode(nd->next, l);
+		} else if (nd->next && ismatch(TOP(nd->next), TOP(nd))) {
+			PUSH(nd->next, TOP(nd));
+			POP(nd);
+			reducenode(nd->next, l);
 		} else {
 			break;
 		}
 	}
-	if (nd != n) {
-		POP(nd);
-		PUSH(n, i);
-		if (nd->top == 0) {
-			l->len--;
-		if (nd->next) {
-			nd->next->prev = nd->prev;
-		}
-		if (nd->prev) {
-			nd->prev->next = nd->next;
-		}
-
-		if (l->header == nd)
-			l->header = nd->next;
-		}
-		return 1;
-	}
+	deleteNodeIfEmpty(nd, l);
 	return 0;
 }
 
 void accordian(list* l) {
-	if (reducenode(l->header, l)) {
-		int i = 1;
-		node* nd;
-		while(i != 0) {
-			i = 0;
-			nd = l->tail;
-			while(nd) {
-				if (reducenode(nd, l)) {
-					nd = l->tail;
-				}
-				nd = nd->prev;
-			}
-		}
-	}
+	reducenode(l->header, l);
 }
-
 void add2list(list* l, uint8_t card) {
 	node* nd = new_node(card);
 	nd->next = l->header;
