@@ -117,24 +117,32 @@ void deleteNodeIfEmpty(node* nd, list* l) {
 	}
 }
 
-int reducenode(node* nd, list* l) {
-	while (SIZE(nd) > 0) {
-		if (nd->next && nd->next->next && nd->next->next->next && ismatch(TOP(nd->next->next->next), TOP(nd))) {
-			PUSH(nd->next->next->next, TOP(nd));
-			POP(nd);
-			reducenode(nd->next->next->next, l);
-			reducenode(nd->next->next, l);
-			reducenode(nd->next, l);
-		} else if (nd->next && ismatch(TOP(nd->next), TOP(nd))) {
-			PUSH(nd->next, TOP(nd));
-			POP(nd);
-			reducenode(nd->next, l);
+void reducenode(node* nd, list* l) {
+	node *max_n = nd, *max_jump = nd;
+
+	while(max_n) {
+		max_jump = max_n;
+		while(1) {
+			if (max_jump->next && max_jump->next->next
+				&& max_jump->next->next->next
+				&& ismatch(TOP(max_jump->next->next->next), TOP(max_n))) {
+				max_jump = max_jump->next->next->next;
+			} else if (max_jump->next && ismatch(TOP(max_jump->next), TOP(max_n))) {
+				max_jump = max_jump->next;
+			} else {
+				break;
+			}
+		}
+
+		if (max_jump != max_n) {
+			PUSH(max_jump, TOP(max_n));
+			POP(max_n);
+			deleteNodeIfEmpty(max_n, l);
+			max_n = max_jump->prev;
 		} else {
-			break;
+			max_n = max_n->prev;
 		}
 	}
-	deleteNodeIfEmpty(nd, l);
-	return 0;
 }
 
 void accordian(list* l) {
