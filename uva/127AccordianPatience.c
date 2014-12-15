@@ -91,6 +91,12 @@ void printcard(uint8_t i){
 }
 
 bool ismatch(uint8_t a, uint8_t b) {
+	printcard(a);
+	printcard(b);
+	if ((a >> 2 == b >> 2) || (a%4 == b%4))
+		printf(" true\n");
+	else
+		printf("\n");
 	return (a >> 2 == b >> 2) || (a%4 == b%4);
 }
 
@@ -100,6 +106,22 @@ bool islistmatch(list* l, uint8_t card) {
 		return ismatch(card, TOP(l->header));
 	}
 	return false;
+}
+
+void dumpl(list* l) {
+	node* nd = l->header;
+
+	while (nd) {
+		printf("|");
+		for (int i = nd->top - 1; i >= 0; --i)
+		{
+			printf("%c%c|", int2rand(nd->buf[i]>>2), int2suit(nd->buf[i]%4));
+		}
+		printf("->");
+
+		nd = nd->next;
+	}
+	printf("NIL\n");
 }
 
 int reducenode(node* nd, list* l) {
@@ -130,6 +152,7 @@ int reducenode(node* nd, list* l) {
 		if (l->header == nd)
 			l->header = nd->next;
 		}
+		dumpl(l);
 		return 1;
 	}
 	return 0;
@@ -164,7 +187,9 @@ void add2list(list* l, uint8_t card) {
 
 	l->len++;
 
+	dumpl(l);
 	accordian(l);
+	dumpl(l);
 }
 
 uint8_t card2uint8(const char* card) {
@@ -172,9 +197,11 @@ uint8_t card2uint8(const char* card) {
 }
 
 void rdump(node* nd) {
-	while(nd) {
+	if (nd == NULL) {
+		return;
+	} else {
+		rdump(nd->next);
 		printf(" %d", nd->top);
-		nd = nd->prev;
 	}
 }
 
@@ -196,12 +223,13 @@ int main(int argc, char const *argv[])
 			scanf("%s", buf);
 			uint8_t card = card2uint8(buf);
 			add2list(&l, card);
+			printf("\n\n");
 		}
 
 		node* nd = l.header;
 
-		printf("%d %s remaining:", l.len, (l.len == 1? "pile": "piles"));
-		rdump(l.tail);
+		printf("%d piles remaining:", l.len);
+		rdump(nd);
 		printf("\n");
 	}
 
