@@ -94,14 +94,6 @@ bool ismatch(uint8_t a, uint8_t b) {
 	return (a >> 2 == b >> 2) || (a%4 == b%4);
 }
 
-bool islistmatch(list* l, uint8_t card) {
-	if (l->header) {
-		printf("k\n");
-		return ismatch(card, TOP(l->header));
-	}
-	return false;
-}
-
 void deleteNodeIfEmpty(node* nd, list* l) {
 	if (nd->top == 0) {
 			l->len--;
@@ -148,6 +140,7 @@ void reducenode(node* nd, list* l) {
 void accordian(list* l) {
 	reducenode(l->header, l);
 }
+
 void add2list(list* l, uint8_t card) {
 	node* nd = new_node(card);
 	nd->next = l->header;
