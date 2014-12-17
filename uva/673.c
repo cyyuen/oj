@@ -1,32 +1,30 @@
 #include <stdio.h>
+#include <stdint.h>
 
 #define MAX_S 130
-#define MAX_B 65
-
-char stack[MAX_B];
+#define MAX_B 64
 
 int top;
+int len;
+uint64_t stack;
 int valid;
+int done;
 
-#define POP() (top--)
+#define MASK 1
 
-#define TOP() (stack[top-1])
+#define POP() do { stack = stack >> 1; len--; } while(0)
 
-#define PUSH(c) do { stack[top++] = c; } while(0)
+#define TOP() (stack & MASK)
 
-#define ISEMPTY() (top == 0)
+#define PUSH(c) do { stack = (stack << 1) + (c); len++; } while(0)
 
-#define ISFULL() (top == MAX_B)
+#define ISEMPTY() (len == 0)
 
-#define INIT() do { top = 0; valid = 0; } while(0)
+#define ISFULL() (len == 64)
 
-int ismatch(char c) {
-	if (ISEMPTY()) return 0;
-	switch(TOP()) {
-		case '(': return ')' == c;
-		case '[': return ']' == c;
-	}
-}
+#define INIT() do { valid = len = stack = 0; done = 1; } while(0)
+
+#define ISMATCH(c) (ISEMPTY()?0:TOP()?']' == (c):')' == (c))
 
 int main(int argc, char const *argv[])
 {
@@ -40,18 +38,19 @@ int main(int argc, char const *argv[])
 		fgets(buf, MAX_S, stdin);
 		ptr = buf;
 		while (*ptr != '\n' && *ptr != 0) {
-			if (ismatch(*ptr)) {
+			if (ISMATCH(*ptr)) {
 				POP();
 			}
 			else {
-				PUSH(*ptr);
 				if (*ptr == ')' || *ptr == ']' || ISFULL()) {
+					done = 0;
 					break;
 				}
+				PUSH(((int)*ptr) & MASK);
 			}
 			ptr++;
 		}
-		if (ISEMPTY()) {
+		if (done && ISEMPTY()) {
 			valid = 1;
 		}
 		if (valid) printf("Yes\n");
