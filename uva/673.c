@@ -1,8 +1,9 @@
 #include <stdio.h>
 
 #define MAX_S 130
+#define MAX_B 65
 
-char stack[MAX_S];
+char stack[MAX_B];
 
 int top;
 int valid;
@@ -44,6 +45,9 @@ int main(int argc, char const *argv[])
 			}
 			else {
 				PUSH(*ptr);
+				if (*ptr == ')' || *ptr == ']' || ISFULL()) {
+					break;
+				}
 			}
 			ptr++;
 		}
