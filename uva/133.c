@@ -1,100 +1,88 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct node
-{
+#define MAX_N 25
+
+typedef struct node {
 	int id;
-	struct node* next;
-	struct node* prev;
+	int next;
+	int prev;
 } node;
 
-typedef struct list {
-	int len;
-	node* head;
-	node* tail;
-} list;
+node list[MAX_N];
 
-node* newnode(int id) {
-	node* nd = malloc(sizeof(*nd));
-	nd->id = id;
-	return nd;
+void deletenode(int *len, int nd) {
+	printf("%3d", list[nd].id);
+
+	list[list[nd].next].prev = list[nd].prev;
+	list[list[nd].prev].next = list[nd].next;
+
+	(*len)--;
 }
 
-void addnode(list* lt, int id) {
-	node* nd = newnode(id);
-
-	if (lt->len == 0) {
-		lt->head = lt->tail = nd;
-	}
-
-	nd->next = lt->head;
-	lt->head->prev = nd;
-
-	nd->prev = lt->tail;
-	lt->tail->next = nd;
-
-	lt->tail = nd;
-
-
-	lt->len++;
-}
-
-list* newlist(int len) {
-	list* lt = malloc(sizeof(*lt));
+void resetList(int N) {
+	int max = N - 1;
 	int i;
-	lt->len = 0;
-	for (i = 1; i <= len; ++i) {
-		addnode(lt, i);
+
+	for (i = 1; i < max; ++i) {
+		list[i].next = i + 1;
+		list[i].prev = i - 1;
 	}
-	return lt;
+
+	list[0].next = 1;
+	list[0].prev = max;
+
+	list[max].next = 0;
+	if (max != 0)
+		list[max].prev = max - 1;
+	else
+		list[max].prev = 0;
 }
 
-void deletenode(list* lt, node* nd) {
-	printf("%3d", nd->id);
+void initList() {
+	int i;
+	for (i = 0; i != MAX_N; ++i) {
+		list[i].id = i + 1;
+	}
 
-	nd->next->prev = nd->prev;
-	nd->prev->next = nd->next;
-
-	lt->len--;
+	resetList(MAX_N);
 }
 
-void dole(list* lt, int k, int m) {
-	node* workerk = lt->head;
-	node* workerm = lt->tail;
+
+
+void dole(int N, int k, int m) {
+	int len = N;
+
+	int workerk = 0;
+	int workerm = N - 1;
 	int i = 0;
 
-	while(lt->len != 0) {
+	while(len != 0) {
 		if (i)
 			printf(",");
 
 		for(i = 1; i <k; ++i) {
-			workerk = workerk->next;
+			workerk = list[workerk].next;
 		}
 
 		for (i = 1; i < m; ++i) {
-			workerm = workerm->prev;
+			workerm = list[workerm].prev;
 		}
 
 		if (workerk == workerm) {
-			node* tmp = workerk;
-			deletenode(lt, workerk);
-			if (lt->len == 0) break;
+			deletenode(&len, workerk);
+			if (len == 0) break;
 
-			workerk = workerk->next;
-			workerm = workerm->prev;
+			workerk = list[workerk].next;
+			workerm = list[workerm].prev;
 
-			free(tmp);
 		} else {
-			node *tmpk = workerk, *tmpm = workerm;
-			deletenode(lt, workerk);
-			deletenode(lt, workerm);
-			if (lt->len == 0) break;
+			deletenode(&len, workerk);
+			deletenode(&len, workerm);
+			if (len == 0) break;
 
-			workerk = workerk->prev->next;
-			workerm = workerm->next->prev;
-
-			free(tmpk);
-			free(tmpm);
+			workerk = list[list[workerk].prev].next;
+			workerm = list[list[workerm].next].prev;
 		}
 	}
 	printf("\n");
@@ -103,9 +91,10 @@ void dole(list* lt, int k, int m) {
 int main(int argc, char const *argv[])
 {
 	int N, k, m;
+	initList();
 	while (scanf("%d %d %d", &N, &k, &m) != EOF && N != 0) {
-		list* lt = newlist(N);
-		dole(lt, k, m);
+		resetList(N);
+		dole(N, k, m);
 	}
 	return 0;
 }
